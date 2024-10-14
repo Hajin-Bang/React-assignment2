@@ -44,8 +44,22 @@ it("장바구니에 포함된 아이템들의 이름, 수량, 합계가 제대�
   const [firstItem, secondItem] = dataRows;
 
   // Assert: 첫 번째 아이템의 이름, 수량, 합계 금액을 확인합니다.
+  const firstName = within(firstItem).getByText("Handmade Cotton Fish");
+  const firstCount = within(firstItem).getByRole("spinbutton", { name: "" });
+  const firstTotal = within(firstItem).getByText("₩2,427");
+
+  expect(firstName).toBeInTheDocument();
+  expect(firstCount).toHaveValue(3);
+  expect(firstTotal).toBeInTheDocument();
 
   // Assert: 두 번째 아이템의 이름, 수량, 합계 금액을 확인합니다.
+  const secondName = within(secondItem).getByText("Awesome Concrete Shirt");
+  const secondCount = within(secondItem).getByRole("spinbutton", { name: "" });
+  const secondTotal = within(secondItem).getByText("₩1,768");
+
+  expect(secondName).toBeInTheDocument();
+  expect(secondCount).toHaveValue(4);
+  expect(secondTotal).toBeInTheDocument();
 });
 
 it("특정 아이템의 수량이 변경되었을 때 값이 재계산되어 올바르게 업데이트 된다", async () => {
@@ -55,8 +69,13 @@ it("특정 아이템의 수량이 변경되었을 때 값이 재계산되어 올
   const [firstItem] = dataRows.slice(1); // 첫 번째 데이터 행 선택
 
   // Act: 첫 번째 아이템의 수량을 변경합니다.
+  const input = within(firstItem).getByRole("spinbutton");
+  await user.clear(input);
+  await user.type(input, "4");
 
   // Assert: 수량이 변경된 후 재계산된 금액이 올바르게 표시되는지 확인합니다.
+  const firstTotalAfter = within(firstItem).getByText("₩3,236");
+  expect(firstTotalAfter).toBeInTheDocument();
 });
 
 // 최대 수량을 초과할 경우 경고 메시지 확인
@@ -70,8 +89,12 @@ it('특정 아이템의 수량이 1000개로 변경될 경우 "최대 999개 까
   const [firstItem] = dataRows.slice(1);
 
   // Act: 첫 번째 아이템의 수량을 1000으로 변경합니다.
+  const input = within(firstItem).getByRole("spinbutton");
+  await user.clear(input);
+  await user.type(input, "1000");
 
   // Assert: 최대 수량 초과 경고 메시지가 올바르게 표시되는지 확인합니다.
+  expect(alertSpy).toHaveBeenCalledWith("최대 999개 까지 가능합니다!");
 });
 
 // 아이템 삭제 버튼 클릭 후 UI에서 해당 아이템이 사라지는지 확인
@@ -82,8 +105,15 @@ it("특정 아이템의 삭제 버튼을 클릭할 경우 해당 아이템이 �
   const [, secondItem] = dataRows.slice(1); // 두 번째 데이터 행 선택
 
   // Assert: 삭제 전 아이템이 화면에 있는지 확인합니다.
+  const secondName = within(secondItem).getByText("Awesome Concrete Shirt");
+  expect(secondName).toBeInTheDocument();
 
   // Act: 삭제 버튼을 클릭합니다.
+  const deleteButton = within(secondItem).getByRole("button");
+  await user.click(deleteButton);
 
   // Assert: 삭제 후 해당 아이템이 화면에서 사라졌는지 확인합니다.
+  await waitFor(() => {
+    expect(secondName).not.toBeInTheDocument();
+  });
 });
